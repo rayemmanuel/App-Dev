@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -14,25 +15,63 @@ class LoginScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start, // left-align content
             children: [
+              // Stacked title text
               Text(
-                "Log In",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                "Log into",
+                style: GoogleFonts.inter(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              Text(
+                "your account",
+                style: GoogleFonts.inter(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.left,
               ),
               SizedBox(height: 30),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: "Email"),
+
+              // White stacked input boxes
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    hintText: "Email",
+                    border: InputBorder.none,
+                  ),
+                ),
               ),
-              SizedBox(height: 15),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(labelText: "Password"),
+              SizedBox(height: 5),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: "Password",
+                    border: InputBorder.none,
+                  ),
+                ),
               ),
               SizedBox(height: 30),
+
+              // Log In button
               SizedBox(
-                width: 200,
+                width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -40,12 +79,12 @@ class LoginScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 14),
+                    padding: EdgeInsets.symmetric(vertical: 20),
                   ),
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      MaterialPageRoute(builder: (context) => MainScreen()),
                     );
                   },
                   child: Text("Log In"),

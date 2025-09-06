@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'gender_selection_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignUpScreen extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -19,10 +20,16 @@ class SignUpScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Create\nYour Account",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Create\nYour Account",
+                    textAlign: TextAlign.left,
+                    style: GoogleFonts.inter(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 SizedBox(height: 30),
                 TextField(
@@ -48,7 +55,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 30),
                 SizedBox(
-                  width: 200,
+                  width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -56,7 +63,7 @@ class SignUpScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 20),
                     ),
                     onPressed: () {
                       Navigator.pushReplacement(

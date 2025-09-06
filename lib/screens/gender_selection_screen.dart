@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
   @override
@@ -22,7 +23,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             Text(
               "Let's get your\nperfect Forma!",
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -32,10 +33,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             Text(
               "Select your preference to unlock\ntailored fashion insights",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Color.fromARGB(255, 225, 220, 220),
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Color(0xFF8E7E7E)),
             ),
             SizedBox(height: 80),
             Row(
@@ -51,7 +49,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                   },
                   selectedColor: Colors.black,
                   backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
+                  labelStyle: GoogleFonts.inter(
                     color: selectedGender == "Female"
                         ? Colors.white
                         : Colors.black,
@@ -67,7 +65,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                   },
                   selectedColor: Colors.black,
                   backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
+                  labelStyle: GoogleFonts.inter(
                     color: selectedGender == "Male"
                         ? Colors.white
                         : Colors.black,

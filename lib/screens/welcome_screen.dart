@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeScreen extends StatelessWidget {
   @override
@@ -13,7 +14,7 @@ class WelcomeScreen extends StatelessWidget {
           children: [
             Text(
               "FORMA",
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 3,
@@ -23,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
             Text(
               "Every Form. Every Shade. Sustainable & True.",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.black54),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.black54),
             ),
             SizedBox(height: 50),
             Column(
