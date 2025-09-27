@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+
+import '../models/user_profile_model.dart';
+import 'login_screen.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
   @override
@@ -12,6 +15,8 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.brown[100],
       body: Padding(
@@ -29,18 +34,20 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               "Select your preference to unlock\ntailored fashion insights",
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(fontSize: 14, color: Color(0xFF8E7E7E)),
             ),
-            SizedBox(height: 80),
+            const SizedBox(height: 80),
+
+            // Gender choices
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ChoiceChip(
-                  label: Text("Female"),
+                  label: const Text("Female"),
                   selected: selectedGender == "Female",
                   onSelected: (bool selected) {
                     setState(() {
@@ -56,7 +63,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                   ),
                 ),
                 ChoiceChip(
-                  label: Text("Male"),
+                  label: const Text("Male"),
                   selected: selectedGender == "Male",
                   onSelected: (bool selected) {
                     setState(() {
@@ -73,7 +80,10 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 50),
+
+            const SizedBox(height: 50),
+
+            // Continue button
             SizedBox(
               width: 250,
               height: 50,
@@ -87,6 +97,10 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                 onPressed: selectedGender == null
                     ? null
                     : () {
+                        // ✅ Save to UserProfileModel
+                        userProfile.updateGender(selectedGender!);
+
+                        // ✅ Proceed to login
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -94,7 +108,7 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                           ),
                         );
                       },
-                child: Text(
+                child: const Text(
                   "Continue",
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),

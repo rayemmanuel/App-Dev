@@ -303,6 +303,8 @@ class HomeScreenContent extends StatelessWidget {
   }
 
   Widget _buildRecommendationsSection(UserProfileModel userProfile) {
+    final recommendations = userProfile.styleRecommendations;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -361,34 +363,56 @@ class HomeScreenContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 80,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: userProfile.styleRecommendations.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 120,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE7DFD8),
-                    borderRadius: BorderRadius.circular(20),
+
+          // 🔹 Loop through categories
+          ...recommendations.entries.map((entry) {
+            final category = entry.key;
+            final items = entry.value;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                  child: Center(
-                    child: Text(
-                      userProfile.styleRecommendations[index],
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: 120,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE7DFD8),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Center(
+                          child: Text(
+                            items[index],
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            );
+          }).toList(),
         ],
       ),
     );
