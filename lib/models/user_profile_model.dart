@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class UserProfileModel extends ChangeNotifier {
   String? username;
-  String? gender; // Added for recommendation system
+  String? gender; 
   String? bodyType;
   String? skinUndertone;
 
@@ -28,7 +28,9 @@ class UserProfileModel extends ChangeNotifier {
   bool get isBodyTypeComplete => bodyType != null && bodyType!.isNotEmpty;
   bool get isSkinToneComplete =>
       skinUndertone != null && skinUndertone!.isNotEmpty;
-  bool get isProfileComplete => isBodyTypeComplete && isSkinToneComplete;
+  bool get isGenderComplete => gender != null && gender!.isNotEmpty;
+  bool get isProfileComplete =>
+      isBodyTypeComplete && isSkinToneComplete && isGenderComplete;
 
   // -------------------
   // Updaters
@@ -91,10 +93,10 @@ class UserProfileModel extends ChangeNotifier {
   }
 
   // -------------------
-  // FULL Recommendation System
+  // FULL Cross-Filtered Recommendation System
   // -------------------
   Map<String, List<String>> get styleRecommendations {
-    if (gender == null || bodyType == null || skinUndertone == null) {
+    if (!isProfileComplete) {
       return {
         "General": ["Please complete your profile for full recommendations."],
       };
@@ -102,7 +104,9 @@ class UserProfileModel extends ChangeNotifier {
 
     final recs = <String, List<String>>{};
 
-    // Body Type & Gender Mapping
+    // -------------------
+    // 1. Body Shape + Gender
+    // -------------------
     if (gender == "Female") {
       switch (bodyType?.toLowerCase()) {
         case "hourglass":
@@ -157,7 +161,9 @@ class UserProfileModel extends ChangeNotifier {
       }
     }
 
-    // Undertone Clothing Database (your full lists)
+    // -------------------
+    // 2. Undertone Clothing Database
+    // -------------------
     final clothing = {
       "Tops": {
         "warm": [
@@ -210,6 +216,20 @@ class UserProfileModel extends ChangeNotifier {
     clothing.forEach((category, options) {
       recs[category] = options[tone] ?? [];
     });
+
+    // -------------------
+    // 3. Cross-filtered Personalization
+    // -------------------
+    if (gender == "Female" && bodyType?.toLowerCase() == "hourglass" && tone == "warm") {
+      recs["Personalized Tip"] = [
+        "Try a coral wrap dress with a camel coat — perfect for warm undertones and hourglass figures.",
+      ];
+    }
+    if (gender == "Male" && bodyType?.toLowerCase() == "mesomorph" && tone == "cool") {
+      recs["Personalized Tip"] = [
+        "Pair a fitted navy shirt with charcoal trousers for a sharp, balanced look.",
+      ];
+    }
 
     return recs;
   }
