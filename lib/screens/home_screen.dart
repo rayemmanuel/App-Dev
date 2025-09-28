@@ -2,11 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-
+import 'undertone_analysis.dart'; // Your new undertone analysis screen
 import 'my_forma_screen.dart';
 import '../models/user_profile_model.dart';
 import 'forms_screen.dart';
-import 'palette_screen.dart';
 import 'bodyshape_results.dart';
 
 class MainScreen extends StatefulWidget {
@@ -49,7 +48,7 @@ class _MainScreenState extends State<MainScreen> {
         onNavigateToForm: () => _onItemTapped(2),
         onNavigateToPalette: () => _onItemTapped(1),
       ),
-      const PaletteScreen(),
+      const UndertoneAnalysisScreen(), // Changed from PaletteScreen to UndertoneAnalysisScreen
       userProfile.bodyType != null && userProfile.bodyType!.isNotEmpty
           ? BodyShapeResultsScreen(shape: userProfile.bodyType!)
           : const FormsScreen(),
@@ -59,8 +58,6 @@ class _MainScreenState extends State<MainScreen> {
     final selectedIndex = userProfile.navigationIndex;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE7DFD8),
-
       body: screens[selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const [
@@ -99,6 +96,7 @@ class HomeScreenContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 40),
           _buildWelcomeSection(userProfile),
           const SizedBox(height: 24),
           _buildProgressSection(userProfile),
@@ -171,14 +169,14 @@ class HomeScreenContent extends StatelessWidget {
             children: [
               _buildProgressStep(
                 "1",
-                "Body Type",
-                userProfile.isBodyTypeComplete,
+                "Skin Tone",
+                userProfile.isSkinToneComplete,
               ),
               _buildProgressLine(),
               _buildProgressStep(
                 "2",
-                "Skin Tone",
-                userProfile.isSkinToneComplete,
+                "Body Type",
+                userProfile.isBodyTypeComplete,
               ),
               _buildProgressLine(),
               _buildProgressStep("✨", "Results", userProfile.isProfileComplete),
@@ -430,17 +428,6 @@ class HomeScreenContent extends StatelessWidget {
     return Column(
       children: [
         _buildActionCard(
-          "Calculate Body Type",
-          "Enter your measurements to discover your body type and get tailored fit recommendations.",
-          userProfile.isBodyTypeComplete ? "Complete" : "Start",
-          userProfile.isBodyTypeComplete
-              ? "Edit Forma Data"
-              : "Begin Forma Calculator",
-          userProfile.isBodyTypeComplete,
-          onNavigateToForm,
-        ),
-        const SizedBox(height: 16),
-        _buildActionCard(
           "Analyze Skin Tone",
           "Upload your photo to identify your undertone and get your perfect color palette.",
           userProfile.isSkinToneComplete ? "Complete" : "Start",
@@ -449,6 +436,17 @@ class HomeScreenContent extends StatelessWidget {
               : "Upload to Palette",
           userProfile.isSkinToneComplete,
           onNavigateToPalette,
+        ),
+        const SizedBox(height: 16),
+        _buildActionCard(
+          "Calculate Body Type",
+          "Enter your measurements to discover your body type and get tailored fit recommendations.",
+          userProfile.isBodyTypeComplete ? "Complete" : "Start",
+          userProfile.isBodyTypeComplete
+              ? "Edit Forma Data"
+              : "Begin Forma Calculator",
+          userProfile.isBodyTypeComplete,
+          onNavigateToForm,
         ),
       ],
     );

@@ -111,25 +111,33 @@ class UserProfileModel extends ChangeNotifier {
       switch (bodyType?.toLowerCase()) {
         case "hourglass":
           recs["Recommendations"] = [
-            "Wrap dresses, fitted blouses, high-waist skirts",
+            "Wrap dresses",
+            "fitted blouses",
+            "high-waist skirts",
             "Emphasize waist with belts",
           ];
           break;
         case "pear":
           recs["Recommendations"] = [
-            "Boat necks, off-shoulder tops, A-line skirts",
+            "Boat necks",
+            "off-shoulder tops",
+            "A-line skirts",
             "Dark slim trousers to balance hips",
           ];
           break;
         case "rectangle":
           recs["Recommendations"] = [
-            "Peplum tops, belted dresses, ruffles",
+            "Peplum tops",
+            "belted dresses",
+            "ruffles",
             "Fit-and-flare silhouettes to add curves",
           ];
           break;
         case "apple":
           recs["Recommendations"] = [
-            "Empire waist dresses, V-necks, long cardigans",
+            "Empire waist dresses",
+            "V-necks",
+            "long cardigans",
             "Straight-leg trousers for vertical flow",
           ];
           break;
@@ -143,18 +151,21 @@ class UserProfileModel extends ChangeNotifier {
         case "ectomorph":
           recs["Recommendations"] = [
             "Layer clothing to add bulk",
-            "Horizontal patterns, structured jackets",
+            "Horizontal patterns",
+            "structured jackets",
           ];
           break;
         case "mesomorph":
           recs["Recommendations"] = [
             "Fitted shirts (not tight)",
-            "Tapered trousers, blazers with defined waist",
+            "Tapered trousers",
+            "blazers with defined waist",
           ];
           break;
         case "endomorph":
           recs["Recommendations"] = [
-            "Dark vertical patterns, longline jackets",
+            "Dark vertical patterns",
+            "longline jackets",
             "Mid-rise straight trousers",
           ];
           break;
@@ -169,18 +180,29 @@ class UserProfileModel extends ChangeNotifier {
     final clothing = {
       "Tops": {
         "warm": [
-          "Mustard, olive, terracotta sweaters",
-          "Camel button-downs, warm ivory blouses",
-          "Burnt orange knits, warm red polos",
+          "Mustard sweaters",
+          "olive sweaters",
+          "terracotta sweaters",
+          "Camel button-downs",
+          "warm ivory blouses",
+          "Burnt orange knits",
+          "warm red polos",
         ],
         "cool": [
-          "Teal, navy, berry tops",
-          "Crisp white, lavender blouses",
-          "Chambray shirts, icy blue oxfords",
+          "Teal tops",
+          "navy tops",
+          "berry tops",
+          "Crisp white blouses",
+          "lavender blouses",
+          "Chambray shirts",
+          "icy blue oxfords",
         ],
         "neutral": [
-          "Soft taupe, denim, oatmeal sweaters",
-          "Classic white tees, off-white blouses",
+          "Soft taupe sweaters",
+          "denim sweaters",
+          "oatmeal sweaters",
+          "Classic white tees",
+          "off-white blouses",
         ],
       },
       "Bottoms": {
@@ -208,9 +230,12 @@ class UserProfileModel extends ChangeNotifier {
         "neutral": ["Taupe loafers", "Nude sandals"],
       },
       "Accessories": {
-        "warm": ["Gold jewelry, tan handbags"],
-        "cool": ["Silver jewelry, navy handbags"],
-        "neutral": ["Both gold & silver depending on outfit"],
+        "warm": ["Gold jewelry", "tan handbags"],
+        "cool": ["Silver jewelry", "navy handbags"],
+        "neutral": [
+          "Gold jewelry depending on outfit",
+          "Silver jewelry depending on outfit",
+        ],
       },
     };
 

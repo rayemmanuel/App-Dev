@@ -308,181 +308,241 @@ class _PaletteScreenState extends State<PaletteScreen>
       appBar: AppBar(
         backgroundColor: const Color(0xFFE7DFD8),
         elevation: 0,
-        automaticallyImplyLeading: false,
-        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         title: Text(
-          'Skin Tone Analysis',
+          'Under Tone Analysis',
           style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
             color: Colors.black,
-            letterSpacing: 2,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        centerTitle: true,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.palette_rounded, color: Colors.black),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Align your face inside the square and capture',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+
+              // Instruction Card
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      spreadRadius: 1,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF8B7355), Color(0xFFB5A491)],
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 24,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Perfect Your Shot',
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Align your face inside the square for accurate analysis',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: Colors.black54,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // preview + square overlay
-            // Replace the Expanded widget containing the camera preview with this:
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(
-                  20.0,
-                ), // Add padding around the camera
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      16,
-                    ), // Optional: rounded corners
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 2,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+              const SizedBox(height: 24),
+
+              // Camera Preview
+              Container(
+                height: MediaQuery.of(context).size.height * 0.5,
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      spreadRadius: 3,
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(25),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _isCameraInitialized && _cameraController != null
+                          ? CameraPreview(_cameraController!)
+                          : Container(
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF8B7355),
+                                ),
+                              ),
+                            ),
+
+                      // Guide square overlay
+                      Container(
+                        width: 240,
+                        height: 240,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color(0xFF8B7355),
+                            width: 4,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      16,
-                    ), // Match the container's border radius
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        _isCameraInitialized && _cameraController != null
-                            ? CameraPreview(_cameraController!)
-                            : const Center(child: CircularProgressIndicator()),
-                        Container(
-                          width: 220,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: const Color(0xFF947E62),
-                              width: 3,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
-            ),
 
-            // result card styled like forms
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _analyzedUndertone != null
-                  ? Padding(
-                      key: ValueKey(_analyzedUndertone),
-                      padding: const EdgeInsets.all(16),
-                      child: Card(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 24),
+
+              // Result Card
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                child: _analyzedUndertone != null
+                    ? Container(
+                        key: ValueKey(_analyzedUndertone),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 2,
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                        elevation: 6,
-                        child: Padding(
-                          padding: const EdgeInsets.all(14.0),
-                          child: Row(
-                            children: [
-                              if (_capturedBytes != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: kIsWeb
-                                      ? Image.memory(
-                                          _capturedBytes!,
-                                          width: 72,
-                                          height: 72,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.file(
-                                          File(_capturedImagePath!),
-                                          width: 72,
-                                          height: 72,
-                                          fit: BoxFit.cover,
-                                        ),
-                                ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Detected: $_analyzedUndertone',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                        child: Row(
+                          children: [
+                            if (_capturedBytes != null)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: kIsWeb
+                                    ? Image.memory(
+                                        _capturedBytes!,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.file(
+                                        File(_capturedImagePath!),
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                '$_analyzedUndertone Undertone',
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
                               ),
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: _undertoneColor(_analyzedUndertone),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                            ),
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: _undertoneColor(_analyzedUndertone),
+                                borderRadius: BorderRadius.circular(15),
                               ),
-                            ],
-                          ),
+                              child: Icon(
+                                _analyzedUndertone == 'Warm'
+                                    ? Icons.wb_sunny
+                                    : (_analyzedUndertone == 'Cool'
+                                          ? Icons.ac_unit
+                                          : Icons.balance),
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF947E62),
+          backgroundColor: const Color(0xFF8B7355),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
-          elevation: 8,
         ),
         icon: _isAnalyzing
             ? const SizedBox(
-                width: 18,
-                height: 18,
+                width: 20,
+                height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   color: Colors.white,
                 ),
               )
-            : const Icon(Icons.camera_alt),
+            : const Icon(Icons.camera_alt, size: 24),
         label: Text(
           _isAnalyzing ? 'Analyzing...' : 'Capture & Analyze',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
+          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         onPressed: _isAnalyzing ? null : _captureAndAnalyze,
       ),
