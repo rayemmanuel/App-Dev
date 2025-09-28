@@ -344,25 +344,51 @@ class _PaletteScreenState extends State<PaletteScreen>
             ),
 
             // preview + square overlay
+            // Replace the Expanded widget containing the camera preview with this:
             Expanded(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  _isCameraInitialized && _cameraController != null
-                      ? CameraPreview(_cameraController!)
-                      : const Center(child: CircularProgressIndicator()),
-                  Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color(0xFF947E62),
-                        width: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(
+                  20.0,
+                ), // Add padding around the camera
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      16,
+                    ), // Optional: rounded corners
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 2,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      16,
+                    ), // Match the container's border radius
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        _isCameraInitialized && _cameraController != null
+                            ? CameraPreview(_cameraController!)
+                            : const Center(child: CircularProgressIndicator()),
+                        Container(
+                          width: 220,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color(0xFF947E62),
+                              width: 3,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class UserProfileModel extends ChangeNotifier {
   String? username;
-  String? gender; 
+  String? gender;
   String? bodyType;
   String? skinUndertone;
 
@@ -110,48 +110,50 @@ class UserProfileModel extends ChangeNotifier {
     if (gender == "Female") {
       switch (bodyType?.toLowerCase()) {
         case "hourglass":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Wrap dresses, fitted blouses, high-waist skirts",
             "Emphasize waist with belts",
           ];
           break;
         case "pear":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Boat necks, off-shoulder tops, A-line skirts",
             "Dark slim trousers to balance hips",
           ];
           break;
         case "rectangle":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Peplum tops, belted dresses, ruffles",
             "Fit-and-flare silhouettes to add curves",
           ];
           break;
         case "apple":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Empire waist dresses, V-necks, long cardigans",
             "Straight-leg trousers for vertical flow",
           ];
           break;
         default:
-          recs["Body Shape"] = ["Choose outfits that highlight proportions"];
+          recs["Recommendations"] = [
+            "Choose outfits that highlight proportions",
+          ];
       }
     } else if (gender == "Male") {
       switch (bodyType?.toLowerCase()) {
         case "ectomorph":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Layer clothing to add bulk",
             "Horizontal patterns, structured jackets",
           ];
           break;
         case "mesomorph":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Fitted shirts (not tight)",
             "Tapered trousers, blazers with defined waist",
           ];
           break;
         case "endomorph":
-          recs["Body Shape"] = [
+          recs["Recommendations"] = [
             "Dark vertical patterns, longline jackets",
             "Mid-rise straight trousers",
           ];
@@ -220,12 +222,16 @@ class UserProfileModel extends ChangeNotifier {
     // -------------------
     // 3. Cross-filtered Personalization
     // -------------------
-    if (gender == "Female" && bodyType?.toLowerCase() == "hourglass" && tone == "warm") {
+    if (gender == "Female" &&
+        bodyType?.toLowerCase() == "hourglass" &&
+        tone == "warm") {
       recs["Personalized Tip"] = [
         "Try a coral wrap dress with a camel coat — perfect for warm undertones and hourglass figures.",
       ];
     }
-    if (gender == "Male" && bodyType?.toLowerCase() == "mesomorph" && tone == "cool") {
+    if (gender == "Male" &&
+        bodyType?.toLowerCase() == "mesomorph" &&
+        tone == "cool") {
       recs["Personalized Tip"] = [
         "Pair a fitted navy shirt with charcoal trousers for a sharp, balanced look.",
       ];
