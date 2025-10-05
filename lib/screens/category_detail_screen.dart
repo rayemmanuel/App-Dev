@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/user_profile_model.dart';
+import '../utils/transitions_helper.dart';
 
 class CategoryDetailScreen extends StatelessWidget {
   final String categoryName;
@@ -40,47 +41,51 @@ class CategoryDetailScreen extends StatelessWidget {
           : Column(
               children: [
                 // Header Section
-                Container(
-                  padding: const EdgeInsets.all(20),
+                AnimatedSlideIn(
+                  duration: const Duration(milliseconds: 500),
+                  delay: const Duration(milliseconds: 100),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFB5A491), Color(0xFF8B7355)],
+                    padding: const EdgeInsets.all(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFB5A491), Color(0xFF8B7355)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Curated for ${userProfile.skinUndertone} undertone",
-                                style: GoogleFonts.inter(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                "${items.length} items recommended",
-                                style: GoogleFonts.inter(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white,
+                            size: 24,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Curated for ${userProfile.skinUndertone} undertone",
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  "${items.length} items recommended",
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -99,13 +104,17 @@ class CategoryDetailScreen extends StatelessWidget {
                         categoryName,
                         itemName,
                       );
-                      return _buildPinterestCard(
-                        context,
-                        userProfile,
-                        categoryName,
-                        itemName,
-                        clothingItem,
-                        index,
+                      return StaggeredListItem(
+                        index: index,
+                        baseDelay: const Duration(milliseconds: 50),
+                        child: _buildPinterestCard(
+                          context,
+                          userProfile,
+                          categoryName,
+                          itemName,
+                          clothingItem,
+                          index,
+                        ),
                       );
                     },
                   ),
@@ -125,6 +134,7 @@ class CategoryDetailScreen extends StatelessWidget {
   ) {
     final heights = [200.0, 250.0, 180.0, 220.0, 240.0, 190.0];
     final imageHeight = heights[index % heights.length];
+    final isSelected = userProfile.isItemSelected(categoryName, itemName);
 
     return GestureDetector(
       onTap: () {
@@ -143,126 +153,102 @@ class CategoryDetailScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image section
-            Stack(
-              children: [
-                Container(
-                  height: imageHeight,
-                  decoration: BoxDecoration(
-                    color: _getPlaceholderColor(itemName),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    image: clothingItem.imageUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(clothingItem.imageUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: clothingItem.imageUrl == null
-                      ? Center(
-                          child: Icon(
-                            _getIconForItem(itemName),
-                            size: 48,
-                            color: Colors.white.withOpacity(0.6),
-                          ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Image section
+              Container(
+                height: imageHeight,
+                decoration: BoxDecoration(
+                  color: _getPlaceholderColor(itemName),
+                  image: clothingItem.imageUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(clothingItem.imageUrl!),
+                          fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                // Item name overlay
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.6),
-                          Colors.transparent,
-                        ],
-                      ),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
+                child: clothingItem.imageUrl == null
+                    ? Center(
+                        child: Icon(
+                          _getIconForItem(itemName),
+                          size: 48,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      )
+                    : null,
+              ),
+              // Item name overlay at top
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.6),
+                        Colors.transparent,
+                      ],
                     ),
-                    child: Text(
-                      itemName,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  ),
+                  child: Text(
+                    itemName,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ],
-            ),
-
-            // Bottom section
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        userProfile.selectOutfitItem(categoryName, itemName);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "$itemName added to Your Perfect Outfit",
-                            ),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B7355).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "Perfect Match",
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF8B7355),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.favorite_border,
-                    size: 18,
-                    color: Colors.black.withOpacity(0.4),
-                  ),
-                ],
               ),
-            ),
-          ],
+              // Heart icon at top right
+              Positioned(
+                top: 8,
+                right: 8,
+                child: AnimatedHeartButton(
+                  isSelected: isSelected,
+                  onTap: () {
+                    if (isSelected) {
+                      userProfile.removeOutfitItem(categoryName);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "$itemName removed from Your Perfect Outfit",
+                          ),
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    } else {
+                      userProfile.selectOutfitItem(categoryName, itemName);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "$itemName added to Your Perfect Outfit",
+                          ),
+                          duration: const Duration(seconds: 1),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -360,6 +346,93 @@ class CategoryDetailScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Animated Heart Button Widget
+class AnimatedHeartButton extends StatefulWidget {
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const AnimatedHeartButton({
+    super.key,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<AnimatedHeartButton> createState() => _AnimatedHeartButtonState();
+}
+
+class _AnimatedHeartButtonState extends State<AnimatedHeartButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _controller.forward().then((_) {
+      _controller.reverse();
+    });
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _handleTap,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return ScaleTransition(scale: animation, child: child);
+            },
+            child: Icon(
+              widget.isSelected ? Icons.favorite : Icons.favorite_border,
+              key: ValueKey<bool>(widget.isSelected),
+              size: 20,
+              color: widget.isSelected
+                  ? const Color(0xFF8B7355)
+                  : Colors.black.withOpacity(0.6),
+            ),
+          ),
         ),
       ),
     );

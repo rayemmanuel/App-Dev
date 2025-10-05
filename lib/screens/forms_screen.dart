@@ -15,20 +15,24 @@ class _FormsScreenState extends State<FormsScreen> {
   int currentStep = 0;
   final PageController _pageController = PageController();
 
-  // Controllers for each step
+  // Controllers - Basic measurements (both genders)
   final TextEditingController heightController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
+
+  // Controllers - Female specific
   final TextEditingController bustController = TextEditingController();
   final TextEditingController waistController = TextEditingController();
-  final TextEditingController highHipController = TextEditingController();
   final TextEditingController hipsController = TextEditingController();
+
+  // Controllers - Male specific
+  final TextEditingController shoulderController = TextEditingController();
+  final TextEditingController chestController = TextEditingController();
+  final TextEditingController waistMaleController = TextEditingController();
+  final TextEditingController wristController = TextEditingController();
 
   String heightUnit = "cm";
   String weightUnit = "kg";
-  String bustUnit = "cm";
-  String waistUnit = "cm";
-  String highHipUnit = "cm";
-  String hipsUnit = "cm";
+  String measurementUnit = "cm";
 
   void _nextStep() {
     if (currentStep < 2) {
@@ -58,25 +62,8 @@ class _FormsScreenState extends State<FormsScreen> {
 
   void _getResults() {
     final userProfile = Provider.of<UserProfileModel>(context, listen: false);
-    String? gender = userProfile.gender; // Get gender from user profile
+    String? gender = userProfile.gender;
 
-    // Get measurements in cm
-    double bust = _convertToCm(
-      double.tryParse(bustController.text) ?? 0,
-      bustUnit,
-    );
-    double waist = _convertToCm(
-      double.tryParse(waistController.text) ?? 0,
-      waistUnit,
-    );
-    double highHip = _convertToCm(
-      double.tryParse(highHipController.text) ?? 0,
-      highHipUnit,
-    );
-    double hips = _convertToCm(
-      double.tryParse(hipsController.text) ?? 0,
-      hipsUnit,
-    );
     double height = _convertToCm(
       double.tryParse(heightController.text) ?? 0,
       heightUnit,
@@ -86,89 +73,113 @@ class _FormsScreenState extends State<FormsScreen> {
     String shape = "Undefined";
 
     if (gender == "Male") {
-      // Male body type calculation using Sheldon's somatotypes
-      // Calculate BMI and body ratios
+      // Male-specific measurements
+      double shoulder = _convertToCm(
+        double.tryParse(shoulderController.text) ?? 0,
+        measurementUnit,
+      );
+      double chest = _convertToCm(
+        double.tryParse(chestController.text) ?? 0,
+        measurementUnit,
+      );
+      double waist = _convertToCm(
+        double.tryParse(waistMaleController.text) ?? 0,
+        measurementUnit,
+      );
+      double wrist = _convertToCm(
+        double.tryParse(wristController.text) ?? 0,
+        measurementUnit,
+      );
+
+      // Calculate BMI
       double heightInMeters = height / 100;
       double bmi = weight / (heightInMeters * heightInMeters);
 
-      // Calculate shoulder to hip ratio (using bust as proxy for shoulders)
-      double shoulderHipRatio = bust / hips;
+      // Calculate ratios
+      double shoulderToWaist = shoulder / waist;
+      double chestToWaist = chest / waist;
 
-      // Calculate waist to hip ratio
-      double waistHipRatio = waist / hips;
+      // Frame size based on wrist
+      bool smallFrame = wrist < 16.5;
+      bool largeFrame = wrist > 19;
 
-      // Ectomorph: Lean, slender, less body fat
-      // Characteristics: higher metabolism, narrower frame
-      if (bmi < 22 && waistHipRatio < 0.9 && shoulderHipRatio < 1.05) {
+      // ECTOMORPH: Lean, hard gainer
+      if (bmi < 20 || (bmi <= 22 && smallFrame && (chest - waist) < 12)) {
         shape = "Ectomorph";
       }
-      // Mesomorph: Athletic, muscular, medium build
-      // Characteristics: shoulders wider than hips, athletic build
-      else if (bmi >= 22 &&
-          bmi <= 27 &&
-          shoulderHipRatio >= 1.05 &&
-          waistHipRatio < 0.95) {
+      // MESOMORPH: Athletic, V-taper
+      else if (bmi >= 20 &&
+          bmi <= 26 &&
+          shoulderToWaist >= 1.3 &&
+          chestToWaist >= 1.2 &&
+          (chest - waist) >= 15) {
         shape = "Mesomorph";
       }
-      // Endomorph: Stockier, more body fat, larger frame
-      // Characteristics: larger midsection, stockier build
-      else if (bmi > 25 || waistHipRatio >= 0.95) {
+      // ENDOMORPH: Stockier, easier fat gain
+      else if (bmi > 26 || shoulderToWaist < 1.2 || (chest - waist) < 10) {
         shape = "Endomorph";
       }
-      // Default to Mesomorph for athletic builds that don't fit clear categories
+      // Edge cases
       else {
-        shape = "Mesomorph";
+        if (smallFrame && bmi <= 23) {
+          shape = "Ectomorph";
+        } else if (largeFrame || bmi > 25) {
+          shape = "Endomorph";
+        } else {
+          shape = "Mesomorph";
+        }
       }
     } else {
-      // Female body type calculation - Standard fashion/medical categories
+      // Female body types based on the article's definitions
+      double bust = _convertToCm(
+        double.tryParse(bustController.text) ?? 0,
+        measurementUnit,
+      );
+      double waist = _convertToCm(
+        double.tryParse(waistController.text) ?? 0,
+        measurementUnit,
+      );
+      double hips = _convertToCm(
+        double.tryParse(hipsController.text) ?? 0,
+        measurementUnit,
+      );
+
+      // Calculate key differences and ratios
       double bustMinusHips = bust - hips;
       double hipsMinusBust = hips - bust;
       double bustMinusWaist = bust - waist;
       double hipsMinusWaist = hips - waist;
       double waistHipRatio = waist / hips;
-      double waistBustRatio = waist / bust;
 
-      // Calculate if measurements are similar (within 5% difference)
-      bool bustHipsSimilar = (bust - hips).abs() / ((bust + hips) / 2) < 0.05;
-      bool bustWaistSimilar =
-          (bust - waist).abs() / ((bust + waist) / 2) < 0.09;
-      bool hipsWaistSimilar =
-          (hips - waist).abs() / ((hips + waist) / 2) < 0.09;
-
-      // Hourglass: Bust and hips similar width, defined waist
-      // Waist-to-hip ratio < 0.75, bust and hips within 2.5 cm
-      if (bustHipsSimilar &&
+      // HOURGLASS: "bust and hips the same width" + "smaller defined waist"
+      if ((bust - hips).abs() <= 5 &&
           waistHipRatio < 0.75 &&
           hipsMinusWaist >= 18 &&
           bustMinusWaist >= 18) {
         shape = "Hourglass";
       }
-      // Pear/Triangle: Hips wider than shoulders/bust, defined waist
-      // Hip measurement noticeably larger than bust
+      // PEAR/TRIANGLE: "narrower shoulders than hips" + "defined waist"
       else if (hipsMinusBust >= 5 &&
-          hipsMinusWaist >= 18 &&
-          waistHipRatio < 0.8) {
+          hipsMinusWaist >= 15 &&
+          waistHipRatio <= 0.8) {
         shape = "Pear";
       }
-      // Inverted Triangle: Shoulders/bust wider than hips
-      // Little waist definition, broader upper body
+      // INVERTED TRIANGLE: "lower half smaller than top" + "shoulders wider than hips"
       else if (bustMinusHips >= 5 &&
-          (bustWaistSimilar || bustMinusWaist < 18)) {
+          (bustMinusWaist < 15 || waistHipRatio >= 0.8)) {
         shape = "Inverted Triangle";
       }
-      // Rectangle: Similar measurements throughout, little waist definition
-      // Bust, waist, and hips roughly the same
-      else if (bustHipsSimilar &&
-          (bustWaistSimilar || hipsWaistSimilar) &&
-          waistHipRatio >= 0.75) {
-        shape = "Rectangle";
-      }
-      // Apple/Oval: Weight carried in midsection, narrower hips
-      // Waist measurement larger relative to hips
-      else if (waistHipRatio >= 0.8 && waist >= hips * 0.85) {
+      // APPLE/OVAL: "top and bottom halves narrow" + "weight in chest and stomach"
+      else if (waist >= bust * 0.9 ||
+          (waistHipRatio >= 0.85 && bustMinusWaist < 10)) {
         shape = "Apple";
       }
-      // Default to Rectangle if no clear category
+      // RECTANGLE: "no major definition at waistline" + "similar hip and shoulder width"
+      else if ((bust - hips).abs() <= 5 &&
+          (waistHipRatio >= 0.75 || hipsMinusWaist < 15)) {
+        shape = "Rectangle";
+      }
+      // Default to Rectangle
       else {
         shape = "Rectangle";
       }
@@ -196,16 +207,28 @@ class _FormsScreenState extends State<FormsScreen> {
   }
 
   bool _canProceed() {
+    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+    String? gender = userProfile.gender;
+
     switch (currentStep) {
       case 0:
         return heightController.text.isNotEmpty &&
             weightController.text.isNotEmpty;
       case 1:
-        return bustController.text.isNotEmpty &&
-            waistController.text.isNotEmpty;
+        if (gender == "Male") {
+          return shoulderController.text.isNotEmpty &&
+              chestController.text.isNotEmpty &&
+              waistMaleController.text.isNotEmpty;
+        } else {
+          return bustController.text.isNotEmpty &&
+              waistController.text.isNotEmpty;
+        }
       case 2:
-        return highHipController.text.isNotEmpty &&
-            hipsController.text.isNotEmpty;
+        if (gender == "Male") {
+          return wristController.text.isNotEmpty;
+        } else {
+          return hipsController.text.isNotEmpty;
+        }
       default:
         return false;
     }
@@ -242,7 +265,6 @@ class _FormsScreenState extends State<FormsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Main Content - Scrollable (including progress indicator)
             Expanded(
               child: PageView(
                 controller: _pageController,
@@ -254,8 +276,6 @@ class _FormsScreenState extends State<FormsScreen> {
                 ],
               ),
             ),
-
-            // Bottom Navigation Buttons - Fixed at bottom
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               decoration: BoxDecoration(
@@ -387,28 +407,30 @@ class _FormsScreenState extends State<FormsScreen> {
     );
   }
 
+  Widget _buildProgressIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildStepIndicator(0, currentStep >= 0),
+          _buildStepLine(currentStep > 0),
+          _buildStepIndicator(1, currentStep >= 1),
+          _buildStepLine(currentStep > 1),
+          _buildStepIndicator(2, currentStep >= 2),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBasicMeasurementsStep() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress Indicator at the top of scrollable content
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStepIndicator(0, currentStep >= 0),
-                _buildStepLine(currentStep > 0),
-                _buildStepIndicator(1, currentStep >= 1),
-                _buildStepLine(currentStep > 1),
-                _buildStepIndicator(2, currentStep >= 2),
-              ],
-            ),
-          ),
+          _buildProgressIndicator(),
           const SizedBox(height: 10),
-          // Icon
           Container(
             width: 80,
             height: 80,
@@ -419,7 +441,6 @@ class _FormsScreenState extends State<FormsScreen> {
             child: const Icon(Icons.straighten, color: Colors.white, size: 40),
           ),
           const SizedBox(height: 24),
-
           Text(
             'Basic Measurements',
             style: GoogleFonts.inter(
@@ -429,58 +450,169 @@ class _FormsScreenState extends State<FormsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
             "Let's start with your height and weight",
             style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
-
           _buildMeasurementField(
             title: "Height (cm)",
             controller: heightController,
-            selectedUnit: heightUnit,
-            onUnitChanged: (val) => setState(() => heightUnit = val),
             hintText: "e.g., 165",
             icon: Icons.height,
           ),
           const SizedBox(height: 24),
-
           _buildMeasurementField(
             title: "Weight (kg)",
             controller: weightController,
-            selectedUnit: weightUnit,
-            onUnitChanged: (val) => setState(() => weightUnit = val),
             hintText: "e.g., 60",
             icon: Icons.monitor_weight,
           ),
-          const SizedBox(height: 100), // Extra padding for keyboard
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
   Widget _buildBodyMeasurementsStep1() {
+    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+    String? gender = userProfile.gender;
+
+    if (gender == "Male") {
+      return _buildMaleUpperBodyStep();
+    } else {
+      return _buildFemaleUpperBodyStep();
+    }
+  }
+
+  Widget _buildBodyMeasurementsStep2() {
+    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+    String? gender = userProfile.gender;
+
+    if (gender == "Male") {
+      return _buildMaleFrameStep();
+    } else {
+      return _buildFemaleLowerBodyStep();
+    }
+  }
+
+  Widget _buildMaleUpperBodyStep() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress Indicator at the top of scrollable content
+          _buildProgressIndicator(),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStepIndicator(0, currentStep >= 0),
-                _buildStepLine(currentStep > 0),
-                _buildStepIndicator(1, currentStep >= 1),
-                _buildStepLine(currentStep > 1),
-                _buildStepIndicator(2, currentStep >= 2),
-              ],
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFFB5A491),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.fitness_center,
+              color: Colors.white,
+              size: 40,
             ),
           ),
+          const SizedBox(height: 24),
+          Text(
+            'Upper Body',
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Measure shoulders, chest, and waist',
+            style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          _buildMeasurementField(
+            title: "Shoulder Width (cm)",
+            controller: shoulderController,
+            hintText: "e.g., 45",
+            icon: Icons.straighten,
+            helpText: "Measure from left to right shoulder bone",
+          ),
+          const SizedBox(height: 24),
+          _buildMeasurementField(
+            title: "Chest (cm)",
+            controller: chestController,
+            hintText: "e.g., 100",
+            icon: Icons.straighten,
+            helpText: "Around fullest part of chest",
+          ),
+          const SizedBox(height: 24),
+          _buildMeasurementField(
+            title: "Waist (cm)",
+            controller: waistMaleController,
+            hintText: "e.g., 85",
+            icon: Icons.straighten,
+            helpText: "Around belly button level",
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaleFrameStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
+      child: Column(
+        children: [
+          _buildProgressIndicator(),
+          const SizedBox(height: 10),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFFB5A491),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(Icons.watch, color: Colors.white, size: 40),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Frame Size',
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This helps determine your bone structure',
+            style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          _buildMeasurementField(
+            title: "Wrist Circumference (cm)",
+            controller: wristController,
+            hintText: "e.g., 17",
+            icon: Icons.straighten,
+            helpText: "Around the narrowest part of your wrist",
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFemaleUpperBodyStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
+      child: Column(
+        children: [
+          _buildProgressIndicator(),
           const SizedBox(height: 10),
           Container(
             width: 80,
@@ -496,7 +628,6 @@ class _FormsScreenState extends State<FormsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           Text(
             'Upper Body',
             style: GoogleFonts.inter(
@@ -506,58 +637,37 @@ class _FormsScreenState extends State<FormsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
-            "Measure your bust and waist",
+            'Measure your bust and waist',
             style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
-
           _buildMeasurementField(
             title: "Bust (cm)",
             controller: bustController,
-            selectedUnit: bustUnit,
-            onUnitChanged: (val) => setState(() => bustUnit = val),
             hintText: "e.g., 88",
             icon: Icons.straighten,
           ),
           const SizedBox(height: 24),
-
           _buildMeasurementField(
             title: "Waist (cm)",
             controller: waistController,
-            selectedUnit: waistUnit,
-            onUnitChanged: (val) => setState(() => waistUnit = val),
             hintText: "e.g., 70",
             icon: Icons.straighten,
           ),
-          const SizedBox(height: 100), // Extra padding for keyboard
+          const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildBodyMeasurementsStep2() {
+  Widget _buildFemaleLowerBodyStep() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 16.0),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress Indicator at the top of scrollable content
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStepIndicator(0, currentStep >= 0),
-                _buildStepLine(currentStep > 0),
-                _buildStepIndicator(1, currentStep >= 1),
-                _buildStepLine(currentStep > 1),
-                _buildStepIndicator(2, currentStep >= 2),
-              ],
-            ),
-          ),
+          _buildProgressIndicator(),
           const SizedBox(height: 10),
           Container(
             width: 80,
@@ -573,7 +683,6 @@ class _FormsScreenState extends State<FormsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
           Text(
             'Lower Body',
             style: GoogleFonts.inter(
@@ -583,33 +692,19 @@ class _FormsScreenState extends State<FormsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
-            "Measure your high hip and hips",
+            'Measure your hips',
             style: GoogleFonts.inter(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
-
-          _buildMeasurementField(
-            title: "High Hip (cm)",
-            controller: highHipController,
-            selectedUnit: highHipUnit,
-            onUnitChanged: (val) => setState(() => highHipUnit = val),
-            hintText: "e.g., 85",
-            icon: Icons.straighten,
-          ),
-          const SizedBox(height: 24),
-
           _buildMeasurementField(
             title: "Hips (cm)",
             controller: hipsController,
-            selectedUnit: hipsUnit,
-            onUnitChanged: (val) => setState(() => hipsUnit = val),
             hintText: "e.g., 95",
             icon: Icons.straighten,
           ),
-          const SizedBox(height: 100), // Extra padding for keyboard
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -618,10 +713,9 @@ class _FormsScreenState extends State<FormsScreen> {
   Widget _buildMeasurementField({
     required String title,
     required TextEditingController controller,
-    required String selectedUnit,
-    required Function(String) onUnitChanged,
     required String hintText,
     required IconData icon,
+    String? helpText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -634,6 +728,13 @@ class _FormsScreenState extends State<FormsScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        if (helpText != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            helpText,
+            style: GoogleFonts.inter(color: Colors.grey[500], fontSize: 12),
+          ),
+        ],
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(

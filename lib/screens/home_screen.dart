@@ -8,6 +8,7 @@ import '../models/user_profile_model.dart';
 import 'forms_screen.dart';
 import 'bodyshape_results.dart';
 import 'category_detail_screen.dart';
+import '../utils/transitions_helper.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -98,23 +99,76 @@ class HomeScreenContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          _buildWelcomeSection(userProfile),
+
+          // Animate welcome section
+          AnimatedSlideIn(
+            delay: const Duration(milliseconds: 0),
+            child: _buildWelcomeSection(userProfile),
+          ),
+
           const SizedBox(height: 24),
-          _buildProgressSection(userProfile),
+
+          // Animate progress section
+          AnimatedSlideIn(
+            delay: const Duration(milliseconds: 100),
+            child: _buildProgressSection(userProfile),
+          ),
+
           const SizedBox(height: 24),
+
           if (userProfile.isProfileComplete) ...[
-            _buildResultsSection(userProfile),
+            // Animate results section
+            AnimatedSlideIn(
+              delay: const Duration(milliseconds: 200),
+              child: _buildResultsSection(userProfile),
+            ),
+
             const SizedBox(height: 24),
-            _buildPersonalizedOutfitSection(context, userProfile),
+
+            // Animate personalized outfit
+            AnimatedSlideIn(
+              delay: const Duration(milliseconds: 300),
+              child: _buildPersonalizedOutfitSection(context, userProfile),
+            ),
+
             const SizedBox(height: 24),
-            _buildStyleTipsSection(userProfile),
+
+            // Animate style tips
+            AnimatedSlideIn(
+              delay: const Duration(milliseconds: 400),
+              child: _buildStyleTipsSection(userProfile),
+            ),
+
             const SizedBox(height: 24),
-            _buildColorPaletteSection(userProfile),
+
+            // Animate color palette
+            AnimatedSlideIn(
+              delay: const Duration(milliseconds: 500),
+              child: _buildColorPaletteSection(userProfile),
+            ),
+
             const SizedBox(height: 24),
-            _buildCategoryGrid(context, userProfile),
+
+            // Animate category grid
+            AnimatedSlideIn(
+              delay: const Duration(milliseconds: 600),
+              child: _buildCategoryGrid(context, userProfile),
+            ),
+
             const SizedBox(height: 24),
           ],
-          _buildActionCards(userProfile, onNavigateToForm, onNavigateToPalette),
+
+          // Animate action cards
+          AnimatedSlideIn(
+            delay: Duration(
+              milliseconds: userProfile.isProfileComplete ? 700 : 200,
+            ),
+            child: _buildActionCards(
+              userProfile,
+              onNavigateToForm,
+              onNavigateToPalette,
+            ),
+          ),
         ],
       ),
     );
@@ -300,14 +354,11 @@ class HomeScreenContent extends StatelessWidget {
     BuildContext context,
     UserProfileModel userProfile,
   ) {
-    final selectedItems = userProfile.selectedOutfitItems;
-
-    // Don't show section if no items selected
-    if (selectedItems.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final selectedOutfit = userProfile.selectedOutfit;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
+      width: screenWidth - 40, // Account for the 20px padding on each side
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -324,7 +375,7 @@ class HomeScreenContent extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(screenWidth * 0.05), // 5% of screen width
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -345,77 +396,240 @@ class HomeScreenContent extends StatelessWidget {
                   ),
                 ],
               ),
-              // Clear button
-              IconButton(
-                onPressed: () {
-                  userProfile.clearOutfit();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Outfit cleared'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.delete_outline, color: Colors.white),
-                tooltip: 'Clear outfit',
-              ),
+              // Clear button - only show if there are items
+              if (selectedOutfit.isNotEmpty)
+                IconButton(
+                  onPressed: () {
+                    userProfile.clearOutfit();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Outfit cleared'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                  tooltip: 'Clear outfit',
+                ),
             ],
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(20),
+            width: double.infinity, // Takes full width of parent
+            constraints: BoxConstraints(
+              minHeight: 120, // Minimum height for empty state
+              maxWidth: screenWidth - 88, // Account for brown container padding
+            ),
+            padding: EdgeInsets.all(screenWidth * 0.04), // 4% of screen width
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "${selectedItems.length} item${selectedItems.length != 1 ? 's' : ''} selected",
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF8B7355),
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...selectedItems.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF8B7355),
-                            shape: BoxShape.circle,
-                          ),
+            child: selectedOutfit.isEmpty
+                ? Column(
+                    children: [
+                      Icon(
+                        Icons.checkroom_outlined,
+                        size: 48,
+                        color: Colors.black.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "No items selected yet",
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            item,
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w500,
-                              height: 1.5,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Browse categories and tap 'Perfect Match' to add items",
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.black38,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${selectedOutfit.length} item${selectedOutfit.length != 1 ? 's' : ''} selected",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF8B7355),
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...selectedOutfit.entries.map((entry) {
+                        final category = entry.key;
+                        final itemName = entry.value;
+                        final clothingItem = userProfile.getClothingItem(
+                          category,
+                          itemName,
+                        );
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE7DFD8),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                // Image
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: _getPlaceholderColorForItem(
+                                      itemName,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: clothingItem.imageUrl != null
+                                        ? DecorationImage(
+                                            image: NetworkImage(
+                                              clothingItem.imageUrl!,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: clothingItem.imageUrl == null
+                                      ? Icon(
+                                          _getIconForItemName(itemName),
+                                          size: 30,
+                                          color: Colors.white.withOpacity(0.6),
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                // Item info
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        itemName,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 15,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        category,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: const Color(0xFF8B7355),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Remove button
+                                IconButton(
+                                  onPressed: () {
+                                    userProfile.removeOutfitItem(category);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('$itemName removed'),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.close,
+                                    size: 20,
+                                    color: Color(0xFF8B7355),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
           ),
         ],
       ),
     );
+  }
+
+  Color _getPlaceholderColorForItem(String itemName) {
+    final colorMap = {
+      'warm': [
+        const Color(0xFFD4AF37),
+        const Color(0xFFCD853F),
+        const Color(0xFFDAA520),
+        const Color(0xFFB8860B),
+      ],
+      'cool': [
+        const Color(0xFF4169E1),
+        const Color(0xFF8A2BE2),
+        const Color(0xFF20B2AA),
+        const Color(0xFF9370DB),
+      ],
+      'neutral': [
+        const Color(0xFF708090),
+        const Color(0xFF2E8B57),
+        const Color(0xFF800080),
+        const Color(0xFFB22222),
+      ],
+    };
+
+    final lowerName = itemName.toLowerCase();
+    if (lowerName.contains('warm') ||
+        lowerName.contains('camel') ||
+        lowerName.contains('rust') ||
+        lowerName.contains('olive') ||
+        lowerName.contains('honey') ||
+        lowerName.contains('terracotta')) {
+      return colorMap['warm']![itemName.hashCode % 4];
+    } else if (lowerName.contains('cool') ||
+        lowerName.contains('navy') ||
+        lowerName.contains('teal') ||
+        lowerName.contains('lavender') ||
+        lowerName.contains('charcoal')) {
+      return colorMap['cool']![itemName.hashCode % 4];
+    }
+    return colorMap['neutral']![itemName.hashCode % 4];
+  }
+
+  IconData _getIconForItemName(String itemName) {
+    final lowerName = itemName.toLowerCase();
+    if (lowerName.contains('dress')) return Icons.checkroom;
+    if (lowerName.contains('shirt') || lowerName.contains('blouse'))
+      return Icons.shopping_bag;
+    if (lowerName.contains('pants') ||
+        lowerName.contains('jeans') ||
+        lowerName.contains('trousers'))
+      return Icons.yard;
+    if (lowerName.contains('jacket') ||
+        lowerName.contains('blazer') ||
+        lowerName.contains('coat'))
+      return Icons.dry_cleaning;
+    if (lowerName.contains('shoes') ||
+        lowerName.contains('boots') ||
+        lowerName.contains('sneakers'))
+      return Icons.shopping_basket;
+    if (lowerName.contains('bag')) return Icons.work_outline;
+    if (lowerName.contains('scarf') || lowerName.contains('tie'))
+      return Icons.interests;
+    return Icons.checkroom;
   }
 
   Widget _buildStyleTipsSection(UserProfileModel userProfile) {
@@ -697,12 +911,9 @@ class HomeScreenContent extends StatelessWidget {
   ) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                CategoryDetailScreen(categoryName: categoryName),
-          ),
+        // Use elegant transition for navigation
+        context.elegantNavigateTo(
+          CategoryDetailScreen(categoryName: categoryName),
         );
       },
       child: Container(

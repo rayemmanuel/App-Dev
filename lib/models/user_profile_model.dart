@@ -75,6 +75,11 @@ class UserProfileModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Get selected outfit as map (category -> itemName)
+  Map<String, String> get selectedOutfit {
+    return Map.from(_selectedOutfit);
+  }
+
   // -------------------
   // MongoDB Integration Methods
   // -------------------
