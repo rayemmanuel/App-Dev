@@ -57,6 +57,10 @@ class _FormsScreenState extends State<FormsScreen> {
   }
 
   void _getResults() {
+    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+    String? gender = userProfile.gender; // Get gender from user profile
+
+    // Get measurements in cm
     double bust = _convertToCm(
       double.tryParse(bustController.text) ?? 0,
       bustUnit,
@@ -73,21 +77,103 @@ class _FormsScreenState extends State<FormsScreen> {
       double.tryParse(hipsController.text) ?? 0,
       hipsUnit,
     );
+    double height = _convertToCm(
+      double.tryParse(heightController.text) ?? 0,
+      heightUnit,
+    );
+    double weight = double.tryParse(weightController.text) ?? 0;
 
     String shape = "Undefined";
-    if ((bust - hips).abs() <= 3 &&
-        (bust - waist) >= 9 &&
-        (hips - waist) >= 10) {
-      shape = "Hourglass";
-    } else if (hips - bust >= 3 && hips - waist >= 7) {
-      shape = "Pear";
-    } else if (bust - hips >= 3 && bust - waist >= 7) {
-      shape = "Franco";
+
+    if (gender == "Male") {
+      // Male body type calculation using Sheldon's somatotypes
+      // Calculate BMI and body ratios
+      double heightInMeters = height / 100;
+      double bmi = weight / (heightInMeters * heightInMeters);
+
+      // Calculate shoulder to hip ratio (using bust as proxy for shoulders)
+      double shoulderHipRatio = bust / hips;
+
+      // Calculate waist to hip ratio
+      double waistHipRatio = waist / hips;
+
+      // Ectomorph: Lean, slender, less body fat
+      // Characteristics: higher metabolism, narrower frame
+      if (bmi < 22 && waistHipRatio < 0.9 && shoulderHipRatio < 1.05) {
+        shape = "Ectomorph";
+      }
+      // Mesomorph: Athletic, muscular, medium build
+      // Characteristics: shoulders wider than hips, athletic build
+      else if (bmi >= 22 &&
+          bmi <= 27 &&
+          shoulderHipRatio >= 1.05 &&
+          waistHipRatio < 0.95) {
+        shape = "Mesomorph";
+      }
+      // Endomorph: Stockier, more body fat, larger frame
+      // Characteristics: larger midsection, stockier build
+      else if (bmi > 25 || waistHipRatio >= 0.95) {
+        shape = "Endomorph";
+      }
+      // Default to Mesomorph for athletic builds that don't fit clear categories
+      else {
+        shape = "Mesomorph";
+      }
     } else {
-      shape = "Rectangle";
+      // Female body type calculation - Standard fashion/medical categories
+      double bustMinusHips = bust - hips;
+      double hipsMinusBust = hips - bust;
+      double bustMinusWaist = bust - waist;
+      double hipsMinusWaist = hips - waist;
+      double waistHipRatio = waist / hips;
+      double waistBustRatio = waist / bust;
+
+      // Calculate if measurements are similar (within 5% difference)
+      bool bustHipsSimilar = (bust - hips).abs() / ((bust + hips) / 2) < 0.05;
+      bool bustWaistSimilar =
+          (bust - waist).abs() / ((bust + waist) / 2) < 0.09;
+      bool hipsWaistSimilar =
+          (hips - waist).abs() / ((hips + waist) / 2) < 0.09;
+
+      // Hourglass: Bust and hips similar width, defined waist
+      // Waist-to-hip ratio < 0.75, bust and hips within 2.5 cm
+      if (bustHipsSimilar &&
+          waistHipRatio < 0.75 &&
+          hipsMinusWaist >= 18 &&
+          bustMinusWaist >= 18) {
+        shape = "Hourglass";
+      }
+      // Pear/Triangle: Hips wider than shoulders/bust, defined waist
+      // Hip measurement noticeably larger than bust
+      else if (hipsMinusBust >= 5 &&
+          hipsMinusWaist >= 18 &&
+          waistHipRatio < 0.8) {
+        shape = "Pear";
+      }
+      // Inverted Triangle: Shoulders/bust wider than hips
+      // Little waist definition, broader upper body
+      else if (bustMinusHips >= 5 &&
+          (bustWaistSimilar || bustMinusWaist < 18)) {
+        shape = "Inverted Triangle";
+      }
+      // Rectangle: Similar measurements throughout, little waist definition
+      // Bust, waist, and hips roughly the same
+      else if (bustHipsSimilar &&
+          (bustWaistSimilar || hipsWaistSimilar) &&
+          waistHipRatio >= 0.75) {
+        shape = "Rectangle";
+      }
+      // Apple/Oval: Weight carried in midsection, narrower hips
+      // Waist measurement larger relative to hips
+      else if (waistHipRatio >= 0.8 && waist >= hips * 0.85) {
+        shape = "Apple";
+      }
+      // Default to Rectangle if no clear category
+      else {
+        shape = "Rectangle";
+      }
     }
 
-    final userProfile = Provider.of<UserProfileModel>(context, listen: false);
     userProfile.updateBodyType(shape);
 
     ScaffoldMessenger.of(context).showSnackBar(

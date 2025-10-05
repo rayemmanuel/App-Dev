@@ -261,20 +261,13 @@ class _PaletteScreenState extends State<PaletteScreen>
           ],
         ),
         content: Text(
-          '$undertone\n\nWe analyzed only the square region (auto crop) in the center.',
+          '$undertone\n\nWe analyzed only the square region in the center.',
           style: GoogleFonts.inter(height: 1.4, color: Colors.black87),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _captureAndAnalyze();
-            },
-            child: const Text('Try Again'),
           ),
         ],
       ),

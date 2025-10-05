@@ -2,11 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'undertone_analysis.dart'; // Your new undertone analysis screen
+import 'undertone_analysis.dart';
 import 'my_forma_screen.dart';
 import '../models/user_profile_model.dart';
 import 'forms_screen.dart';
 import 'bodyshape_results.dart';
+import 'category_detail_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -48,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
         onNavigateToForm: () => _onItemTapped(2),
         onNavigateToPalette: () => _onItemTapped(1),
       ),
-      const UndertoneAnalysisScreen(), // Changed from PaletteScreen to UndertoneAnalysisScreen
+      const UndertoneAnalysisScreen(),
       userProfile.bodyType != null && userProfile.bodyType!.isNotEmpty
           ? BodyShapeResultsScreen(shape: userProfile.bodyType!)
           : const FormsScreen(),
@@ -104,7 +105,13 @@ class HomeScreenContent extends StatelessWidget {
           if (userProfile.isProfileComplete) ...[
             _buildResultsSection(userProfile),
             const SizedBox(height: 24),
-            _buildRecommendationsSection(userProfile),
+            _buildPersonalizedOutfitSection(context, userProfile),
+            const SizedBox(height: 24),
+            _buildStyleTipsSection(userProfile),
+            const SizedBox(height: 24),
+            _buildColorPaletteSection(userProfile),
+            const SizedBox(height: 24),
+            _buildCategoryGrid(context, userProfile),
             const SizedBox(height: 24),
           ],
           _buildActionCards(userProfile, onNavigateToForm, onNavigateToPalette),
@@ -289,134 +296,459 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendationsSection(UserProfileModel userProfile) {
-    final recommendations = userProfile.styleRecommendations;
+  Widget _buildPersonalizedOutfitSection(
+    BuildContext context,
+    UserProfileModel userProfile,
+  ) {
+    final selectedItems = userProfile.selectedOutfitItems;
 
-    return Column(
-      children: [
-        // Color Palette Section (separate box)
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+    // Don't show section if no items selected
+    if (selectedItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF8B7355), Color(0xFFB5A491)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Your Perfect Outfit",
+                    style: GoogleFonts.inter(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              // Clear button
+              IconButton(
+                onPressed: () {
+                  userProfile.clearOutfit();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Outfit cleared'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.delete_outline, color: Colors.white),
+                tooltip: 'Clear outfit',
               ),
             ],
           ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${selectedItems.length} item${selectedItems.length != 1 ? 's' : ''} selected",
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFF8B7355),
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...selectedItems.map((item) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF8B7355),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            item,
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w500,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStyleTipsSection(UserProfileModel userProfile) {
+    final tips = userProfile.styleTips;
+
+    if (tips.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
+              const Icon(
+                Icons.lightbulb_outline,
+                color: Color(0xFF8B7355),
+                size: 24,
+              ),
+              const SizedBox(width: 8),
               Text(
-                "Your Color Palette",
+                "Style Tips for You",
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: userProfile.colorPalette
-                    .map(
-                      (color) => Container(
-                        width: 32,
-                        height: 32,
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 1,
-                              blurRadius: 2,
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
             ],
+          ),
+          const SizedBox(height: 16),
+          ...tips.take(3).map((tip) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF8B7355),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      tip,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorPaletteSection(UserProfileModel userProfile) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Your Color Palette",
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: userProfile.colorPalette
+                .map(
+                  (color) => Container(
+                    width: 40,
+                    height: 40,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryGrid(
+    BuildContext context,
+    UserProfileModel userProfile,
+  ) {
+    final isMale = userProfile.gender?.toLowerCase() == "male";
+    final isFemale = userProfile.gender?.toLowerCase() == "female";
+
+    final List<Map<String, dynamic>> categories = [];
+
+    categories.add({
+      'name': 'Sweaters & Knits',
+      'icon': Icons.checkroom,
+      'color': const Color(0xFFB5A491),
+    });
+
+    categories.add({
+      'name': 'Shirts',
+      'icon': Icons.shelves,
+      'color': const Color(0xFF8B7355),
+    });
+
+    categories.add({
+      'name': 'T-Shirts & Casual Tops',
+      'icon': Icons.dry_cleaning,
+      'color': const Color(0xFFD4C4B0),
+    });
+
+    if (isFemale) {
+      categories.add({
+        'name': 'Blouses & Tops',
+        'icon': Icons.local_mall,
+        'color': const Color(0xFFB5A491),
+      });
+    }
+
+    categories.add({
+      'name': 'Trousers & Pants',
+      'icon': Icons.safety_divider,
+      'color': const Color(0xFF8B7355),
+    });
+
+    categories.add({
+      'name': 'Jeans & Denim',
+      'icon': Icons.workspace_premium,
+      'color': const Color(0xFFD4C4B0),
+    });
+
+    categories.add({
+      'name': 'Shorts',
+      'icon': Icons.wb_sunny,
+      'color': const Color(0xFFB5A491),
+    });
+
+    if (isFemale) {
+      categories.add({
+        'name': 'Skirts',
+        'icon': Icons.wc,
+        'color': const Color(0xFF8B7355),
+      });
+
+      categories.add({
+        'name': 'Dresses',
+        'icon': Icons.face_retouching_natural,
+        'color': const Color(0xFFD4C4B0),
+      });
+
+      categories.add({
+        'name': 'Jumpsuits & Rompers',
+        'icon': Icons.accessibility_new,
+        'color': const Color(0xFFB5A491),
+      });
+    }
+
+    categories.add({
+      'name': 'Blazers & Jackets',
+      'icon': Icons.shopping_bag,
+      'color': const Color(0xFF8B7355),
+    });
+
+    categories.add({
+      'name': 'Coats',
+      'icon': Icons.ac_unit,
+      'color': const Color(0xFFD4C4B0),
+    });
+
+    categories.add({
+      'name': 'Shoes',
+      'icon': Icons.directions_run,
+      'color': const Color(0xFFB5A491),
+    });
+
+    categories.add({
+      'name': isFemale ? 'Bags & Accessories' : 'Bags & Accessories',
+      'icon': isFemale ? Icons.shopping_basket : Icons.work_outline,
+      'color': const Color(0xFF8B7355),
+    });
+
+    categories.add({
+      'name': 'Scarves & Ties',
+      'icon': Icons.sports_martial_arts,
+      'color': const Color(0xFFD4C4B0),
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Browse by Category",
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 16),
-
-        // Individual category boxes
-        ...recommendations.entries.map((entry) {
-          final category = entry.key;
-          final items = entry.value;
-
-          return Column(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      category,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 80,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            width: 120,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE7DFD8),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Center(
-                              child: Text(
-                                items[index],
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          );
-        }).toList(),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.3,
+          ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return _buildCategoryCard(
+              context,
+              category['name'] as String,
+              category['icon'] as IconData,
+              category['color'] as Color,
+              userProfile,
+            );
+          },
+        ),
       ],
+    );
+  }
+
+  Widget _buildCategoryCard(
+    BuildContext context,
+    String categoryName,
+    IconData icon,
+    Color color,
+    UserProfileModel userProfile,
+  ) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                CategoryDetailScreen(categoryName: categoryName),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                categoryName,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
