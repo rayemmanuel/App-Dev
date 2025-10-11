@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../models/user_profile_model.dart';
+import '../utils/transitions_helper.dart';
 
 class PaletteScreen extends StatefulWidget {
   const PaletteScreen({super.key});
@@ -29,6 +30,8 @@ class _PaletteScreenState extends State<PaletteScreen>
 
   late final AnimationController _resultAnimController;
   late final Animation<double> _resultAnim;
+  late final AnimationController _buttonPulseController;
+  late final Animation<double> _buttonPulseAnim;
 
   @override
   void initState() {
@@ -41,6 +44,15 @@ class _PaletteScreenState extends State<PaletteScreen>
     _resultAnim = CurvedAnimation(
       parent: _resultAnimController,
       curve: Curves.easeOut,
+    );
+
+    // Pulse animation for the capture button
+    _buttonPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _buttonPulseAnim = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _buttonPulseController, curve: Curves.easeInOut),
     );
   }
 
@@ -236,40 +248,70 @@ class _PaletteScreenState extends State<PaletteScreen>
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              undertone == 'Warm'
-                  ? Icons.wb_sunny
-                  : (undertone == 'Cool' ? Icons.ac_unit : Icons.balance),
-              color: undertone == 'Warm'
-                  ? const Color(0xFFF59E0B)
-                  : (undertone == 'Cool'
-                        ? const Color(0xFF3B82F6)
-                        : const Color(0xFF10B981)),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Skin Undertone Detected',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+      builder: (context) => ScaleTransition(
+        scale: CurvedAnimation(
+          parent: _resultAnimController,
+          curve: Curves.elasticOut,
+        ),
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: Icon(
+                      undertone == 'Warm'
+                          ? Icons.wb_sunny
+                          : (undertone == 'Cool'
+                                ? Icons.ac_unit
+                                : Icons.balance),
+                      color: undertone == 'Warm'
+                          ? const Color(0xFFF59E0B)
+                          : (undertone == 'Cool'
+                                ? const Color(0xFF3B82F6)
+                                : const Color(0xFF10B981)),
+                      size: 32,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Skin Undertone Detected',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            '$undertone\n\nWe analyzed only the square region in the center.',
+            style: GoogleFonts.inter(height: 1.5, color: Colors.black87),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF8B7355),
+              ),
+              child: Text(
+                'Close',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
               ),
             ),
           ],
         ),
-        content: Text(
-          '$undertone\n\nWe analyzed only the square region in the center.',
-          style: GoogleFonts.inter(height: 1.4, color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
       ),
     );
   }
@@ -278,6 +320,7 @@ class _PaletteScreenState extends State<PaletteScreen>
   void dispose() {
     _cameraController?.dispose();
     _resultAnimController.dispose();
+    _buttonPulseController.dispose();
     super.dispose();
   }
 
@@ -324,111 +367,79 @@ class _PaletteScreenState extends State<PaletteScreen>
             children: [
               const SizedBox(height: 20),
 
-              // Instruction Card
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      spreadRadius: 1,
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF8B7355), Color(0xFFB5A491)],
-                        ),
-                        borderRadius: BorderRadius.circular(15),
+              // Instruction Card with slide animation
+              AnimatedSlideIn(
+                duration: const Duration(milliseconds: 600),
+                delay: const Duration(milliseconds: 100),
+                begin: const Offset(0, -0.2),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        spreadRadius: 1,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Perfect Your Shot',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Align your face inside the square for accurate analysis',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: Colors.black54,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Camera Preview
-              Container(
-                height: MediaQuery.of(context).size.height * 0.5,
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 3,
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(25),
-                  child: Stack(
-                    alignment: Alignment.center,
+                    ],
+                  ),
+                  child: Row(
                     children: [
-                      _isCameraInitialized && _cameraController != null
-                          ? CameraPreview(_cameraController!)
-                          : Container(
-                              color: Colors.grey.shade300,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFF8B7355),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.elasticOut,
+                        builder: (context, value, child) {
+                          return Transform.scale(
+                            scale: value,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF8B7355),
+                                    Color(0xFFB5A491),
+                                  ],
                                 ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 24,
                               ),
                             ),
-
-                      // Guide square overlay
-                      Container(
-                        width: 240,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: const Color(0xFF8B7355),
-                            width: 4,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Perfect Your Shot',
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Align your face inside the square for accurate analysis',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.black54,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -438,9 +449,81 @@ class _PaletteScreenState extends State<PaletteScreen>
 
               const SizedBox(height: 24),
 
-              // Result Card
+              // Camera Preview with scale animation
+              AnimatedSlideIn(
+                duration: const Duration(milliseconds: 700),
+                delay: const Duration(milliseconds: 200),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        spreadRadius: 3,
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        _isCameraInitialized && _cameraController != null
+                            ? CameraPreview(_cameraController!)
+                            : Container(
+                                color: Colors.grey.shade300,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFF8B7355),
+                                  ),
+                                ),
+                              ),
+
+                        // Animated guide square overlay
+                        TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0.8, end: 1.0),
+                          duration: const Duration(milliseconds: 1200),
+                          curve: Curves.elasticOut,
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: AnimatedPulsingBorder(
+                                child: Container(
+                                  width: 240,
+                                  height: 240,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xFF8B7355),
+                                      width: 4,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Result Card with smooth transition
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
                 child: _analyzedUndertone != null
                     ? Container(
                         key: ValueKey(_analyzedUndertone),
@@ -461,21 +544,31 @@ class _PaletteScreenState extends State<PaletteScreen>
                         child: Row(
                           children: [
                             if (_capturedBytes != null)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(15),
-                                child: kIsWeb
-                                    ? Image.memory(
-                                        _capturedBytes!,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.file(
-                                        File(_capturedImagePath!),
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                duration: const Duration(milliseconds: 600),
+                                curve: Curves.easeOut,
+                                builder: (context, value, child) {
+                                  return Transform.scale(
+                                    scale: value,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(15),
+                                      child: kIsWeb
+                                          ? Image.memory(
+                                              _capturedBytes!,
+                                              width: 80,
+                                              height: 80,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.file(
+                                              File(_capturedImagePath!),
+                                              width: 80,
+                                              height: 80,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                  );
+                                },
                               ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -488,21 +581,33 @@ class _PaletteScreenState extends State<PaletteScreen>
                                 ),
                               ),
                             ),
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: _undertoneColor(_analyzedUndertone),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Icon(
-                                _analyzedUndertone == 'Warm'
-                                    ? Icons.wb_sunny
-                                    : (_analyzedUndertone == 'Cool'
-                                          ? Icons.ac_unit
-                                          : Icons.balance),
-                                color: Colors.white,
-                              ),
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.elasticOut,
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: _undertoneColor(
+                                        _analyzedUndertone,
+                                      ),
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    child: Icon(
+                                      _analyzedUndertone == 'Warm'
+                                          ? Icons.wb_sunny
+                                          : (_analyzedUndertone == 'Cool'
+                                                ? Icons.ac_unit
+                                                : Icons.balance),
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -514,31 +619,78 @@ class _PaletteScreenState extends State<PaletteScreen>
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF8B7355),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      floatingActionButton: ScaleTransition(
+        scale: _isAnalyzing
+            ? const AlwaysStoppedAnimation(1.0)
+            : _buttonPulseAnim,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF8B7355),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            elevation: _isAnalyzing ? 2 : 8,
           ),
+          icon: _isAnalyzing
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.camera_alt, size: 24),
+          label: Text(
+            _isAnalyzing ? 'Analyzing...' : 'Capture & Analyze',
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          onPressed: _isAnalyzing ? null : _captureAndAnalyze,
         ),
-        icon: _isAnalyzing
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
-            : const Icon(Icons.camera_alt, size: 24),
-        label: Text(
-          _isAnalyzing ? 'Analyzing...' : 'Capture & Analyze',
-          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        onPressed: _isAnalyzing ? null : _captureAndAnalyze,
       ),
     );
+  }
+}
+
+// Animated pulsing border widget for the guide square
+class AnimatedPulsingBorder extends StatefulWidget {
+  final Widget child;
+
+  const AnimatedPulsingBorder({super.key, required this.child});
+
+  @override
+  State<AnimatedPulsingBorder> createState() => _AnimatedPulsingBorderState();
+}
+
+class _AnimatedPulsingBorderState extends State<AnimatedPulsingBorder>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+
+    _opacityAnim = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(opacity: _opacityAnim, child: widget.child);
   }
 }

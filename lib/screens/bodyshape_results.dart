@@ -13,6 +13,7 @@ class BodyShapeResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProfile = Provider.of<UserProfileModel>(context, listen: false);
+    final isMale = userProfile.gender?.toLowerCase() == "male";
 
     return Scaffold(
       backgroundColor: const Color(0xFFE7DFD8),
@@ -72,7 +73,7 @@ class BodyShapeResultsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Your Body Shape',
+                      isMale ? 'Your Body Type:' : 'Your Body Shape:',
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -106,10 +107,10 @@ class BodyShapeResultsScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // Body Shape Illustration
+              // Body Shape/Type Illustration
               Container(
                 width: double.infinity,
-                height: 280,
+                padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -132,20 +133,23 @@ class BodyShapeResultsScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(60),
                       ),
                       child: Icon(
-                        _getShapeIcon(shape),
+                        _getShapeIcon(shape, isMale),
                         size: 60,
                         color: const Color(0xFFB5A491),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      _getShapeDescription(shape),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        height: 1.4,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        _getShapeDescription(shape, isMale),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -166,7 +170,9 @@ class BodyShapeResultsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'Ready to discover your perfect wardrobe that celebrates your unique body shape?',
+                  isMale
+                      ? 'Ready to discover clothing that complements your build and enhances your natural physique?'
+                      : 'Ready to discover your perfect wardrobe that celebrates your unique body shape?',
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     color: Colors.white,
@@ -261,33 +267,67 @@ class BodyShapeResultsScreen extends StatelessWidget {
     );
   }
 
-  IconData _getShapeIcon(String shape) {
-    switch (shape.toLowerCase()) {
-      case 'hourglass':
-        return Icons.hourglass_empty;
-      case 'pear':
-        return Icons.landscape;
-      case 'franco':
-        return Icons.keyboard_arrow_up;
-      case 'rectangle':
-        return Icons.crop_square;
-      default:
-        return Icons.person;
+  IconData _getShapeIcon(String shape, bool isMale) {
+    if (isMale) {
+      // Male somatotype icons
+      switch (shape.toLowerCase()) {
+        case 'ectomorph':
+          return Icons.accessibility_new;
+        case 'mesomorph':
+          return Icons.fitness_center;
+        case 'endomorph':
+          return Icons.account_circle;
+        default:
+          return Icons.person;
+      }
+    } else {
+      // Female body shape icons
+      switch (shape.toLowerCase()) {
+        case 'hourglass':
+          return Icons.hourglass_empty;
+        case 'pear':
+          return Icons.landscape;
+        case 'inverted triangle':
+          return Icons.keyboard_arrow_up;
+        case 'rectangle':
+          return Icons.crop_square;
+        case 'apple':
+          return Icons.circle_outlined;
+        default:
+          return Icons.person;
+      }
     }
   }
 
-  String _getShapeDescription(String shape) {
-    switch (shape.toLowerCase()) {
-      case 'hourglass':
-        return 'Balanced proportions with a defined waist.\nYour curves are perfectly balanced!';
-      case 'pear':
-        return 'Fuller hips with a smaller bust.\nYour lower body curves are beautiful!';
-      case 'franco':
-        return 'Broader shoulders with narrower hips.\nYour strong upper body is striking!';
-      case 'rectangle':
-        return 'Balanced and athletic build.\nYour straight silhouette is elegant!';
-      default:
-        return 'Your unique body shape is beautiful\njust the way it is!';
+  String _getShapeDescription(String shape, bool isMale) {
+    if (isMale) {
+      // Male somatotype descriptions
+      switch (shape.toLowerCase()) {
+        case 'ectomorph':
+          return 'Lean and slender build with a fast metabolism.\nYour naturally slim physique is your foundation for a sharp, tailored look!';
+        case 'mesomorph':
+          return 'Athletic and muscular with balanced proportions.\nYour naturally strong build allows you to wear a wide range of styles with confidence!';
+        case 'endomorph':
+          return 'Solid build with a naturally stockier frame.\nYour robust physique gives you a strong, commanding presence!';
+        default:
+          return 'Your unique body type is the perfect canvas\nfor your personal style!';
+      }
+    } else {
+      // Female body shape descriptions
+      switch (shape.toLowerCase()) {
+        case 'hourglass':
+          return 'Balanced proportions with a defined waist.\nYour curves are perfectly balanced!';
+        case 'pear':
+          return 'Fuller hips with a smaller bust.\nYour lower body curves are beautiful!';
+        case 'inverted triangle':
+          return 'Broader shoulders with narrower hips.\nYour strong upper body is striking!';
+        case 'rectangle':
+          return 'Balanced and athletic build.\nYour straight silhouette is elegant!';
+        case 'apple':
+          return 'Weight carried in the midsection with slender legs.\nYour proportions create a graceful silhouette!';
+        default:
+          return 'Your unique body shape is beautiful\njust the way it is!';
+      }
     }
   }
 }
